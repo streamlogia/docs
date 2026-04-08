@@ -31,7 +31,8 @@
       "pages": [
         "introduction",
         "quickstart",
-        "authentication"
+        "authentication",
+        "api-reference/errors"
       ]
     },
     {
@@ -57,12 +58,6 @@
             "api-reference/organisations",
             "api-reference/projects",
             "api-reference/api-keys"
-          ]
-        },
-        {
-          "group": "Reference",
-          "pages": [
-            "api-reference/errors"
           ]
         }
       ]

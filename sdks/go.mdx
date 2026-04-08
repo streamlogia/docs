@@ -27,8 +27,7 @@ import (
 
 func main() {
     client := logingestor.New(
-        "https://api.streamlogia.com",
-        os.Getenv("LOGINGESTOR_TOKEN"),
+        os.Getenv("LOGINGESTOR_API_KEY"),
         os.Getenv("LOGINGESTOR_PROJECT_ID"),
         logingestor.WithSource("my-service"),
     )
@@ -39,12 +38,12 @@ func main() {
 }
 ```
 
-| Option                    | Default | Description                                         |
-| ------------------------- | ------- | --------------------------------------------------- |
-| `WithSource(s string)`    | `""`    | Default `source` field on every log entry           |
-| `WithBatchSize(n int)`    | `1`     | Flush automatically after accumulating `n` entries  |
-| `WithFlushInterval(d)`    | `5s`    | Background flush interval                           |
-| `WithHTTPClient(hc)`      | default | Custom `*http.Client`                               |
+Every entry is sent immediately — there is no internal buffer or background flush.
+
+| Option                    | Default     | Description                               |
+| ------------------------- | ----------- | ----------------------------------------- |
+| `WithSource(s string)`    | `"unknown"` | Default `source` field on every log entry |
+| `WithHTTPClient(hc)`      | default     | Custom `*http.Client`                     |
 
 ---
 
@@ -108,8 +107,7 @@ import (
 
 func main() {
     client := logingestor.New(
-        "https://api.streamlogia.com",
-        os.Getenv("LOGINGESTOR_TOKEN"),
+        os.Getenv("LOGINGESTOR_API_KEY"),
         os.Getenv("LOGINGESTOR_PROJECT_ID"),
         logingestor.WithSource("order-service"),
     )
@@ -184,7 +182,7 @@ func ingest(entries []LogEntry) error {
     }
 
     req, _ := http.NewRequest("POST", "https://api.streamlogia.com/v1/ingest", bytes.NewReader(body))
-    req.Header.Set("Authorization", "Bearer "+os.Getenv("LOGINGESTOR_TOKEN"))
+    req.Header.Set("Authorization", "Bearer "+os.Getenv("LOGINGESTOR_API_KEY"))
     req.Header.Set("Content-Type", "application/json")
 
     resp, err := http.DefaultClient.Do(req)
