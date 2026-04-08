@@ -35,31 +35,36 @@
       ]
     },
     {
-      "group": "Ingest",
+      "group": "API Reference",
       "pages": [
-        "api-reference/ingest",
-        "api-reference/stream"
-      ]
-    },
-    {
-      "group": "Logs",
-      "pages": [
-        "api-reference/list-logs",
-        "api-reference/log-stats"
-      ]
-    },
-    {
-      "group": "Management",
-      "pages": [
-        "api-reference/organisations",
-        "api-reference/projects",
-        "api-reference/api-keys"
-      ]
-    },
-    {
-      "group": "Reference",
-      "pages": [
-        "api-reference/errors"
+        {
+          "group": "Ingest",
+          "pages": [
+            "api-reference/ingest",
+            "api-reference/stream"
+          ]
+        },
+        {
+          "group": "Logs",
+          "pages": [
+            "api-reference/list-logs",
+            "api-reference/log-stats"
+          ]
+        },
+        {
+          "group": "Management",
+          "pages": [
+            "api-reference/organisations",
+            "api-reference/projects",
+            "api-reference/api-keys"
+          ]
+        },
+        {
+          "group": "Reference",
+          "pages": [
+            "api-reference/errors"
+          ]
+        }
       ]
     },
     {
