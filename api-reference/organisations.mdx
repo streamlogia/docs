@@ -1,0 +1,136 @@
+---
+title: Organisations
+description: Organisations are the top-level container for projects, members, and settings.
+---
+
+<Note>Base URL: `https://api.streamlogia.com`</Note>
+
+An **organisation** holds one or more projects and a set of members. Every account must belong to an organisation — new users are prompted to create one on first login. The creator is automatically assigned the **org_admin** role.
+
+```text
+Organisation
+└── Project A  ← isolated log stream, alert rules
+└── Project B
+└── Members
+```
+
+---
+
+## Get my organisations
+
+**`GET /v1/orgs/mine`**
+
+Returns organisations with the user's role in each.
+
+```json Response
+[
+  {
+    "id": "org_a1b2c3d4",
+    "name": "Acme Corp",
+    "slug": "acme",
+    "role": "org_admin"
+  }
+]
+```
+
+---
+
+## Get an organisation
+
+**`GET /v1/orgs/{orgId}`**
+
+### Path parameters
+
+<ParamField path="orgId" type="string" required>UUID of the organisation.</ParamField>
+
+```json Response
+{
+  "id": "org_a1b2c3d4",
+  "name": "Acme Corp",
+  "slug": "acme",
+  "enabled": true,
+  "createdAt": "2026-01-15T10:00:00Z",
+  "updatedAt": "2026-03-01T08:30:00Z"
+}
+```
+
+---
+
+## Create an organisation
+
+**`POST /v1/orgs`**
+
+Any authenticated user can create an organisation. New accounts hit this endpoint automatically after the on-boarding step.
+
+### Request body
+
+<ParamField body="name" type="string" required>Display name — e.g. `"Acme Corp"`</ParamField>
+<ParamField body="slug" type="string" required>URL-safe identifier, unique across the platform — e.g. `"acme-corp"`</ParamField>
+
+```json Request
+{ "name": "Acme Corp", "slug": "acme-corp" }
+```
+
+```json Response
+{
+  "id": "org_a1b2c3d4",
+  "name": "Acme Corp",
+  "slug": "acme-corp",
+  "createdAt": "2026-04-07T10:00:00Z"
+}
+```
+
+| Status | Description |
+|--------|-------------|
+| `401` | Not authenticated |
+| `409` | Slug already taken |
+
+---
+
+## Update an organisation
+
+**`PUT /v1/orgs/{orgId}`**
+
+### Path parameters
+
+<ParamField path="orgId" type="string" required>UUID of the organisation.</ParamField>
+
+### Request body
+
+<ParamField body="name" type="string">New display name.</ParamField>
+<ParamField body="slug" type="string">New slug — must be unique.</ParamField>
+
+```json Request
+{ "name": "Acme Corporation" }
+```
+
+```json Response
+{
+  "id": "org_a1b2c3d4",
+  "name": "Acme Corporation",
+  "slug": "acme-corp",
+  "updatedAt": "2026-04-07T11:00:00Z"
+}
+```
+
+---
+
+## Delete an organisation
+
+**`DELETE /v1/orgs/{orgId}`**
+
+<Warning>
+  Irreversible. All projects, logs, members, API keys, and alert rules are permanently deleted.
+</Warning>
+
+### Path parameters
+
+<ParamField path="orgId" type="string" required>UUID of the organisation.</ParamField>
+
+Returns `204 No Content` with an empty body.
+
+---
+
+<Card title="Next: create a project →" icon="folder-plus" href="/api-reference/projects">
+  Projects are where logs live and API keys are scoped.
+</Card>

@@ -1,0 +1,211 @@
+---
+title: Go
+description: Ship logs from Go services using the Streamlogia Go SDK.
+---
+
+## Installation
+
+```bash
+go get github.com/streamlogia/go-sdk
+```
+
+Requires Go 1.21 or later (uses `log/slog`).
+
+---
+
+## Initialise the client
+
+```go
+package main
+
+import (
+    "context"
+    "os"
+
+    "github.com/streamlogia/go-sdk/logingestor"
+)
+
+func main() {
+    client := logingestor.New(
+        "https://api.streamlogia.com",
+        os.Getenv("LOGINGESTOR_TOKEN"),
+        os.Getenv("LOGINGESTOR_PROJECT_ID"),
+        logingestor.WithSource("my-service"),
+    )
+    defer client.Close() // flush remaining logs on shutdown
+
+    ctx := context.Background()
+    client.Info(ctx, "application started", nil)
+}
+```
+
+| Option                    | Default | Description                                         |
+| ------------------------- | ------- | --------------------------------------------------- |
+| `WithSource(s string)`    | `""`    | Default `source` field on every log entry           |
+| `WithBatchSize(n int)`    | `1`     | Flush automatically after accumulating `n` entries  |
+| `WithFlushInterval(d)`    | `5s`    | Background flush interval                           |
+| `WithHTTPClient(hc)`      | default | Custom `*http.Client`                               |
+
+---
+
+## Log methods
+
+```go
+ctx := context.Background()
+
+client.Debug(ctx, "cache miss", map[string]any{"key": "session:42"})
+client.Info(ctx, "order placed", map[string]any{"orderId": "ord_99", "total": 49.95}, "orders")
+client.Warn(ctx, "rate limit approaching", map[string]any{"remaining": 5})
+client.Error(ctx, "payment failed", map[string]any{"error": err.Error()}, "payments")
+```
+
+Signature: `(ctx, message, meta, tags...)`
+
+- `meta` — `map[string]any` of structured fields, or `nil`
+- `tags` — variadic string tags for filtering in the UI
+
+---
+
+## `slog` handler
+
+Use Streamlogia as a `slog.Handler` to integrate with Go's standard `log/slog` package:
+
+```go
+import (
+    "log/slog"
+    "os"
+
+    "github.com/streamlogia/go-sdk/logingestor"
+)
+
+// Recommended: fan-out to stdout and the ingestor simultaneously
+logger := slog.New(logingestor.MultiHandler{
+    slog.NewTextHandler(os.Stdout, &slog.HandlerOptions{Level: slog.LevelDebug}),
+    logingestor.NewSlogHandler(client),
+})
+slog.SetDefault(logger)
+
+slog.Info("payment processed", "amount", 99.99, "currency", "USD")
+slog.Error("db query failed", "table", "orders", "error", err)
+```
+
+---
+
+## HTTP middleware (net/http)
+
+The client ships a built-in middleware that logs every request automatically:
+
+```go
+package main
+
+import (
+    "log/slog"
+    "net/http"
+    "os"
+
+    "github.com/streamlogia/go-sdk/logingestor"
+)
+
+func main() {
+    client := logingestor.New(
+        "https://api.streamlogia.com",
+        os.Getenv("LOGINGESTOR_TOKEN"),
+        os.Getenv("LOGINGESTOR_PROJECT_ID"),
+        logingestor.WithSource("order-service"),
+    )
+    defer client.Close()
+
+    logger := slog.New(logingestor.MultiHandler{
+        slog.NewTextHandler(os.Stdout, &slog.HandlerOptions{Level: slog.LevelDebug}),
+        logingestor.NewSlogHandler(client),
+    })
+    slog.SetDefault(logger)
+
+    mux := http.NewServeMux()
+    mux.HandleFunc("POST /orders", createOrder)
+    mux.HandleFunc("GET /orders/{id}", getOrder)
+
+    // Wrap mux with the middleware — logs method, path, status, duration, IP, user agent
+    slog.Info("server starting", "addr", ":8080")
+    http.ListenAndServe(":8080", client.HTTPMiddleware(mux))
+}
+```
+
+The middleware sets the log level based on response status: `2xx`/`3xx` → INFO, `4xx` → WARN, `5xx` → ERROR.
+
+---
+
+## Direct ingestion (bypass queue)
+
+```go
+entries := []logingestor.Entry{
+    {
+        ProjectID: os.Getenv("LOGINGESTOR_PROJECT_ID"),
+        Level:     "INFO",
+        Message:   "batch event 1",
+        Source:    "worker",
+    },
+}
+if err := client.Ingest(ctx, entries); err != nil {
+    slog.Error("ingest failed", "err", err)
+}
+```
+
+---
+
+## Raw HTTP (no SDK)
+
+```go
+package main
+
+import (
+    "bytes"
+    "encoding/json"
+    "fmt"
+    "net/http"
+    "os"
+    "time"
+)
+
+type LogEntry struct {
+    ProjectID string         `json:"projectId"`
+    Level     string         `json:"level"`
+    Message   string         `json:"message"`
+    Source    string         `json:"source,omitempty"`
+    Timestamp string         `json:"timestamp"`
+    Tags      []string       `json:"tags,omitempty"`
+    Meta      map[string]any `json:"meta,omitempty"`
+}
+
+func ingest(entries []LogEntry) error {
+    body, err := json.Marshal(entries)
+    if err != nil {
+        return err
+    }
+
+    req, _ := http.NewRequest("POST", "https://api.streamlogia.com/v1/ingest", bytes.NewReader(body))
+    req.Header.Set("Authorization", "Bearer "+os.Getenv("LOGINGESTOR_TOKEN"))
+    req.Header.Set("Content-Type", "application/json")
+
+    resp, err := http.DefaultClient.Do(req)
+    if err != nil {
+        return err
+    }
+    defer resp.Body.Close()
+
+    if resp.StatusCode >= 400 {
+        return fmt.Errorf("ingest failed with status %d", resp.StatusCode)
+    }
+    return nil
+}
+
+func main() {
+    ingest([]LogEntry{{
+        ProjectID: os.Getenv("LOGINGESTOR_PROJECT_ID"),
+        Level:     "INFO",
+        Message:   "Hello, Streamlogia!",
+        Source:    "my-service",
+        Timestamp: time.Now().UTC().Format(time.RFC3339),
+    }})
+}
+```

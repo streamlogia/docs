@@ -1,0 +1,5 @@
+/* Light mode: make code token colors dark and readable */
+html:not(.dark) pre code,
+html:not(.dark) pre code span {
+  color: #24292e !important;
+}

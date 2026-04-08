@@ -1,0 +1,108 @@
+---
+title: Projects
+description: Projects are isolated log streams that live inside an organisation.
+---
+
+<Note>Base URL: `https://api.streamlogia.com`</Note>
+
+A **project** is the container for a single log stream. Each project has its own API keys, alert rules, and ingest history.
+
+---
+
+## List projects
+
+**`GET /v1/orgs/{orgId}/projects`**
+
+### Path parameters
+
+<ParamField path="orgId" type="string" required>UUID of the organisation.</ParamField>
+
+Org admins see every project. Other roles see only the projects they are assigned to.
+
+```json Response
+[
+  {
+    "id": "proj_x1y2z3",
+    "orgId": "org_a1b2c3d4",
+    "name": "payments-service",
+    "color": "#f5a623",
+    "createdAt": "2026-02-01T09:00:00Z",
+    "updatedAt": "2026-03-15T14:22:00Z"
+  }
+]
+```
+
+---
+
+## Create a project
+
+**`POST /v1/orgs/{orgId}/projects`**
+
+### Path parameters
+
+<ParamField path="orgId" type="string" required>UUID of the organisation.</ParamField>
+
+### Request body
+
+<ParamField body="name" type="string" required>Display name — e.g. `"payments-service"`</ParamField>
+<ParamField body="color" type="string">Hex colour for the dashboard — e.g. `"#f5a623"`. Assigned automatically if omitted.</ParamField>
+
+```json Request
+{ "name": "payments-service", "color": "#f5a623" }
+```
+
+```json Response
+{
+  "id": "proj_x1y2z3",
+  "orgId": "org_a1b2c3d4",
+  "name": "payments-service",
+  "color": "#f5a623",
+  "createdAt": "2026-04-07T10:00:00Z"
+}
+```
+
+Use the returned `id` as `projectId` in [ingest requests](/api-reference/ingest).
+
+| Status | Description |
+|--------|-------------|
+| `403` | Caller does not have permission to create projects in this organisation |
+| `404` | Organisation not found |
+
+---
+
+## Update a project
+
+**`PUT /v1/orgs/{orgId}/projects/{projectId}`**
+
+### Path parameters
+
+<ParamField path="orgId" type="string" required>UUID of the organisation.</ParamField>
+<ParamField path="projectId" type="string" required>UUID of the project.</ParamField>
+
+### Request body
+
+<ParamField body="name" type="string">New display name.</ParamField>
+<ParamField body="color" type="string">New hex colour.</ParamField>
+
+```json Request
+{ "name": "payments-service-v2", "color": "#c46f00" }
+```
+
+---
+
+## Delete a project
+
+**`DELETE /v1/orgs/{orgId}/projects/{projectId}`**
+
+<Warning>
+  Irreversible. All logs and alert rules for this project are permanently deleted.
+</Warning>
+
+### Path parameters
+
+<ParamField path="orgId" type="string" required>UUID of the organisation.</ParamField>
+<ParamField path="projectId" type="string" required>UUID of the project.</ParamField>
+
+Returns `204 No Content` with an empty body.
+
+---

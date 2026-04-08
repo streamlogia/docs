@@ -1,0 +1,90 @@
+---
+title: Real-Time Stream
+description: Subscribe to a live WebSocket stream of log entries for a project.
+---
+
+<Note>Base URL: `wss://api.streamlogia.com`</Note>
+
+**`wss://api.streamlogia.com/v1/projects/{projectId}/logs/stream?token=YOUR_API_KEY`**
+
+The API key is passed as a query parameter because the WebSocket API does not support custom headers in browsers.
+
+---
+
+## Parameters
+
+<ParamField path="projectId" type="string" required>UUID of the project to subscribe to.</ParamField>
+<ParamField query="token" type="string" required>Your project API key (`eyJ…`).</ParamField>
+
+---
+
+## Messages
+
+The server pushes arrays of log entries as JSON text frames:
+
+```json
+[
+  {
+    "id": "log_7f3a1b9c-…",
+    "projectId": "YOUR_PROJECT_ID",
+    "level": "ERROR",
+    "message": "Unhandled exception in /v1/orders",
+    "source": "api.handler",
+    "ts": "2026-04-07T09:41:03Z",
+    "tags": ["prod"],
+    "meta": { "orderId": 9921 }
+  }
+]
+```
+
+---
+
+## Browser
+
+```javascript
+const ws = new WebSocket(
+  `wss://api.streamlogia.com/v1/projects/${projectId}/logs/stream?token=${apiKey}`
+);
+
+ws.onmessage = (event) => {
+  const entries = JSON.parse(event.data);
+  entries.forEach((log) => console.log(`[${log.level}] ${log.message}`));
+};
+```
+
+## Node.js
+
+```javascript
+import WebSocket from "ws";
+
+const ws = new WebSocket(
+  `wss://api.streamlogia.com/v1/projects/${projectId}/logs/stream?token=${apiKey}`
+);
+
+ws.on("message", (data) => {
+  const entries = JSON.parse(data.toString());
+  entries.forEach((log) => console.log(log));
+});
+```
+
+## Reconnection
+
+The stream does not auto-reconnect. Use exponential back-off:
+
+```javascript
+function connect(delay = 1000) {
+  const ws = new WebSocket(
+    `wss://api.streamlogia.com/v1/projects/${projectId}/logs/stream?token=${apiKey}`
+  );
+
+  ws.onclose = () =>
+    setTimeout(() => connect(Math.min(delay * 2, 30_000)), delay);
+
+  ws.onmessage = (event) => {
+    const entries = JSON.parse(event.data);
+    // handle entries
+  };
+}
+
+connect();
+```

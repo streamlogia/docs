@@ -1,0 +1,95 @@
+---
+title: Quickstart
+description: Ship your first log in under 2 minutes.
+---
+
+## 1. Create an organisation and project
+
+Sign up at [streamlogia.com](https://streamlogia.com). On first login you will be prompted to create an **organisation**. Once created, open it and create a **project** — this is where your logs will live.
+
+Note the **Project ID** shown on the project page. You will need it in every ingest request.
+
+## 2. Get your API key
+
+Click **API Keys** in the left sidebar. Your key is already available — click **Copy** or **Show** to reveal it.
+
+## 3. Send your first log
+
+<CodeGroup>
+
+```bash cURL
+curl -X POST https://api.streamlogia.com/v1/ingest \
+  -H "Authorization: Bearer YOUR_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "projectId": "YOUR_PROJECT_ID",
+    "level": "INFO",
+    "message": "Hello from Streamlogia!",
+    "source": "quickstart"
+  }'
+```
+
+```javascript Node.js
+import { LogIngestorClient } from "@streamlogia/javascript-sdk";
+
+const client = new LogIngestorClient({
+  apiKey:    "YOUR_API_KEY",
+  projectId: "YOUR_PROJECT_ID",
+  source:    "quickstart",
+});
+
+await client.info("Hello from Streamlogia!");
+await client.close();
+```
+
+```python Python
+from logingestor import LogIngestorClient
+
+client = LogIngestorClient(
+    api_key="YOUR_API_KEY",
+    project_id="YOUR_PROJECT_ID",
+    source="quickstart",
+)
+
+client.info("Hello from Streamlogia!")
+client.close()
+```
+
+```go Go
+import (
+    "context"
+    "github.com/streamlogia/go-sdk/logingestor"
+)
+
+client := logingestor.New(
+    "https://api.streamlogia.com",
+    "YOUR_API_TOKEN",
+    "YOUR_PROJECT_ID",
+    logingestor.WithSource("quickstart"),
+)
+defer client.Close()
+
+client.Info(context.Background(), "Hello from Streamlogia!", nil)
+```
+
+</CodeGroup>
+
+## 4. See it in the dashboard
+
+Open your project's **Logs** tab. Your entry appears within milliseconds.
+
+---
+
+## Next steps
+
+<CardGroup cols={3}>
+  <Card title="Ingest reference" icon="arrow-up-to-line" href="/api-reference/ingest">
+    Full field list and error codes
+  </Card>
+  <Card title="Authentication" icon="lock" href="/authentication">
+    Key rotation and security tips
+  </Card>
+  <Card title="SDK guides" icon="code" href="/sdks/javascript">
+    Framework integrations
+  </Card>
+</CardGroup>

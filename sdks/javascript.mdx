@@ -1,0 +1,185 @@
+---
+title: JavaScript / Node.js
+description: Ship logs from Node.js, Deno, or the browser using the Streamlogia JS SDK.
+---
+
+## Installation
+
+```bash
+npm install @streamlogia/javascript-sdk
+# or
+yarn add @streamlogia/javascript-sdk
+# or
+pnpm add @streamlogia/javascript-sdk
+```
+
+---
+
+## Initialise the client
+
+```javascript
+import { LogIngestorClient } from "@streamlogia/javascript-sdk";
+
+const client = new LogIngestorClient({
+  apiKey:    process.env.LOGINGESTOR_API_KEY,
+  projectId: process.env.LOGINGESTOR_PROJECT_ID,
+  source:    "my-service",
+});
+```
+
+| Option           | Default                          | Description                                    |
+| ---------------- | -------------------------------- | ---------------------------------------------- |
+| `apiKey`         | required                         | Your Log Ingestor API key                      |
+| `projectId`      | required                         | UUID of the project to ingest into             |
+| `source`         | `"unknown"`                      | Default source tag applied to every entry      |
+| `baseURL`        | `"https://api.streamlogia.com"`  | Override the API base URL                      |
+| `batchSize`      | `1`                              | Flush when the queue reaches this many entries |
+| `flushIntervalMs`| `5000`                           | Background flush interval in milliseconds      |
+| `console`        | `true`                           | Mirror logs to the console                     |
+| `onError`        | —                                | Called with the error when an ingest fails     |
+
+---
+
+## Log methods
+
+```javascript
+await client.debug("Cache miss", { meta: { key: "user:abc" } });
+await client.info("Order created", { meta: { orderId: "ord_99" }, tags: ["orders"] });
+await client.warn("Disk usage above 80%");
+await client.error("Payment failed", { meta: { code: "card_declined" }, tags: ["payments"] });
+```
+
+All methods accept an optional second argument with:
+- `meta` — arbitrary object of structured fields
+- `tags` — array of string tags for filtering in the UI
+
+---
+
+## Flush and close
+
+```javascript
+// Drain the internal queue immediately
+await client.flush();
+
+// Flush and stop the background timer — call before process exit
+await client.close();
+```
+
+---
+
+## Express.js middleware
+
+```javascript
+import express from "express";
+import { LogIngestorClient } from "@streamlogia/javascript-sdk";
+import winston from "winston";
+
+const client = new LogIngestorClient({
+  apiKey:    process.env.LOGINGESTOR_API_KEY,
+  projectId: process.env.LOGINGESTOR_PROJECT_ID,
+  source:    "my-service",
+  console:   false, // winston handles console output
+});
+
+const logger = winston.createLogger({
+  transports: [
+    new winston.transports.Console(),
+    client.createWinstonTransport(
+      (await import("winston-transport")).default
+    ),
+  ],
+});
+
+process.on("SIGTERM", async () => { await client.close(); process.exit(0); });
+
+const app = express();
+
+// Mount once at the top — logs method, path, status, duration, IP, user agent
+app.use(client.expressMiddleware());
+
+app.post("/payments", async (req, res) => {
+  try {
+    const paymentId = `pay_${Math.random().toString(36).slice(2)}`;
+    logger.info("payment processed", { paymentId });
+    res.status(201).json({ paymentId });
+  } catch (err) {
+    logger.error("payment failed", { error: err.message });
+    res.status(500).json({ error: "payment failed" });
+  }
+});
+```
+
+---
+
+## Winston transport
+
+```javascript
+import winston from "winston";
+import WinstonTransport from "winston-transport";
+import { LogIngestorClient } from "@streamlogia/javascript-sdk";
+
+const client = new LogIngestorClient({
+  apiKey:    process.env.LOGINGESTOR_API_KEY,
+  projectId: process.env.LOGINGESTOR_PROJECT_ID,
+  source:    "my-service",
+  console:   false,
+});
+
+const logger = winston.createLogger({
+  transports: [
+    new winston.transports.Console(),
+    client.createWinstonTransport(WinstonTransport),
+  ],
+});
+
+logger.error("Something went wrong", { orderId: "ord_99" });
+// ↑ Automatically ingested as level=ERROR
+```
+
+Winston levels are mapped: `error` → ERROR, `warn` → WARN, `info`/`http` → INFO, `verbose`/`debug`/`silly` → DEBUG.
+
+---
+
+## Pino destination
+
+```javascript
+import pino from "pino";
+import { LogIngestorClient } from "@streamlogia/javascript-sdk";
+
+const client = new LogIngestorClient({
+  apiKey:    process.env.LOGINGESTOR_API_KEY,
+  projectId: process.env.LOGINGESTOR_PROJECT_ID,
+  source:    "my-service",
+});
+
+const logger = pino({ level: "debug" }, client.pinoDestination());
+
+logger.info({ userId: "usr_abc" }, "User logged in");
+```
+
+Pino levels are mapped: `≥50` → ERROR, `≥40` → WARN, `≥30` → INFO, `<30` → DEBUG.
+
+---
+
+## Raw fetch (no SDK)
+
+```javascript
+const entry = {
+  projectId: process.env.LOGINGESTOR_PROJECT_ID,
+  level:     "INFO",
+  message:   "Hello, Streamlogia!",
+  source:    "my-service",
+  timestamp: new Date().toISOString(),
+  tags:      [],
+  meta:      {},
+};
+
+fetch("https://api.streamlogia.com/v1/ingest", {
+  method:  "POST",
+  headers: {
+    "Authorization": `Bearer ${process.env.LOGINGESTOR_API_KEY}`,
+    "Content-Type":  "application/json",
+  },
+  body: JSON.stringify([entry]),
+}).catch(() => {});
+```

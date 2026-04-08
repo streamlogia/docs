@@ -1,0 +1,48 @@
+---
+title: Introduction
+description: Structured log ingestion and real-time observability for your services.
+---
+
+Streamlogia collects logs from any service and delivers them to your team in real time. Ship a log with a single HTTP call — everything else (streaming, alerting, search) happens in the dashboard.
+
+## How it works
+
+<Steps>
+  <Step title="Your service sends a log">
+    `POST /v1/ingest` with `Authorization: Bearer eyJ…` and a JSON body containing `level`, `message`, `source`, and `projectId`.
+  </Step>
+  <Step title="api.streamlogia.com receives it">
+    The API authenticates the request, validates the payload, and fans it out to three destinations simultaneously.
+  </Step>
+  <Step title="Stored, streamed, and evaluated">
+    The log is written to the **log store**, pushed over **WebSocket** to the live dashboard, and checked against your **alert rules** — notifying Slack, PagerDuty, or a webhook if conditions match.
+  </Step>
+</Steps>
+
+## What you get
+
+| Feature | Description |
+|---------|-------------|
+| Real-time stream | Logs appear the moment they arrive — no polling |
+| Log levels | Filter by `DEBUG`, `INFO`, `WARN`, `ERROR` |
+| Full-text search | Query across message, source, and tags |
+| Alert rules | Notify your team when conditions match |
+| Projects & orgs | Isolate logs per service and team |
+| Simple API | One endpoint, a Bearer token, a JSON body |
+
+## Where to start
+
+<CardGroup cols={2}>
+  <Card title="Quickstart" icon="bolt" href="/quickstart">
+    Ship your first log in under 2 minutes
+  </Card>
+  <Card title="Authentication" icon="lock" href="/authentication">
+    Create and manage API keys
+  </Card>
+  <Card title="Ingest API" icon="arrow-up-to-line" href="/api-reference/ingest">
+    Full request and response reference
+  </Card>
+  <Card title="SDKs" icon="code" href="/sdks/javascript">
+    Node.js, Python, Go, and cURL examples
+  </Card>
+</CardGroup>

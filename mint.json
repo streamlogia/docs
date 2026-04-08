@@ -1,0 +1,79 @@
+{
+  "$schema": "https://mintlify.com/schema.json",
+  "name": "Streamlogia",
+  "logo": {
+    "dark": "/logo/dark.svg",
+    "light": "/logo/light.svg"
+  },
+  "favicon": "/favicon.svg",
+  "colors": {
+    "primary": "#f5a623",
+    "light": "#f5a623",
+    "dark": "#c46f00"
+  },
+  "font": {
+    "headings": { "family": "Space Grotesk" },
+    "body": { "family": "Space Grotesk" }
+  },
+  "topbarLinks": [
+    {
+      "name": "Dashboard",
+      "url": "https://streamlogia.com"
+    }
+  ],
+  "topbarCtaButton": {
+    "name": "Start for free",
+    "url": "https://streamlogia.com/signup"
+  },
+  "navigation": [
+    {
+      "group": "Getting Started",
+      "pages": [
+        "introduction",
+        "quickstart",
+        "authentication"
+      ]
+    },
+    {
+      "group": "Ingest",
+      "pages": [
+        "api-reference/ingest",
+        "api-reference/stream"
+      ]
+    },
+    {
+      "group": "Logs",
+      "pages": [
+        "api-reference/list-logs",
+        "api-reference/log-stats"
+      ]
+    },
+    {
+      "group": "Management",
+      "pages": [
+        "api-reference/organisations",
+        "api-reference/projects",
+        "api-reference/api-keys"
+      ]
+    },
+    {
+      "group": "Reference",
+      "pages": [
+        "api-reference/errors"
+      ]
+    },
+    {
+      "group": "SDKs",
+      "pages": [
+        "sdks/javascript",
+        "sdks/python",
+        "sdks/go",
+        "sdks/curl"
+      ]
+    }
+  ],
+  "css": "/custom.css",
+  "footerSocials": {
+    "github": "https://github.com/streamlogia"
+  }
+}

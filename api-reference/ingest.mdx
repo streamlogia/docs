@@ -1,0 +1,170 @@
+---
+title: Ingest Logs
+description: Ship one or more log entries to Streamlogia.
+---
+
+<Note>Base URL: `https://api.streamlogia.com`</Note>
+
+**`POST /v1/ingest`**
+
+**`Authorization: Bearer YOUR_API_KEY`**
+
+---
+
+## Request body
+
+Send a **single entry** or an **array** of entries. Both are accepted.
+
+<ParamField body="projectId" type="string" required>
+  UUID of the project this log belongs to.
+</ParamField>
+
+<ParamField body="level" type="string" required>
+  One of `DEBUG`, `INFO`, `WARN`, `ERROR`.
+</ParamField>
+
+<ParamField body="message" type="string" required>
+  Human-readable description of the event. Max 8 KB.
+</ParamField>
+
+<ParamField body="source" type="string" required>
+  Component or service that emitted the log — e.g. `api.handler`, `payments-service`. Used for filtering.
+</ParamField>
+
+<ParamField body="timestamp" type="string">
+  ISO 8601 timestamp — e.g. `2026-04-07T09:41:03Z`. Defaults to the time of receipt if omitted.
+</ParamField>
+
+<ParamField body="tags" type="string[]">
+  Arbitrary labels for filtering — e.g. `["prod", "region:us-east"]`.
+</ParamField>
+
+<ParamField body="meta" type="object">
+  Arbitrary JSON context, max 64 KB — e.g. `{ "orderId": 9921, "traceId": "abc" }`.
+</ParamField>
+
+---
+
+## Examples
+
+<CodeGroup>
+
+```json Single entry
+{
+  "projectId": "YOUR_PROJECT_ID",
+  "level": "ERROR",
+  "message": "Payment failed: card declined",
+  "source": "payments.processor",
+  "timestamp": "2026-04-07T09:41:03Z",
+  "tags": ["prod"],
+  "meta": { "orderId": 9921, "userId": "usr_abc" }
+}
+```
+
+```json Batch
+[
+  {
+    "projectId": "YOUR_PROJECT_ID",
+    "level": "ERROR",
+    "message": "Unhandled exception in /v1/orders",
+    "source": "api.handler"
+  },
+  {
+    "projectId": "YOUR_PROJECT_ID",
+    "level": "WARN",
+    "message": "Connection pool at 90% capacity",
+    "source": "db.pool"
+  }
+]
+```
+
+</CodeGroup>
+
+<CodeGroup>
+
+```bash cURL
+curl -X POST https://api.streamlogia.com/v1/ingest \
+  -H "Authorization: Bearer YOUR_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "projectId": "YOUR_PROJECT_ID",
+    "level": "ERROR",
+    "message": "Payment failed: card declined",
+    "source": "payments.processor",
+    "timestamp": "2026-04-07T09:41:03Z",
+    "tags": ["prod"],
+    "meta": { "userId": "usr_abc", "amount": 4999 }
+  }'
+```
+
+```javascript Node.js
+const res = await fetch("https://api.streamlogia.com/v1/ingest", {
+  method: "POST",
+  headers: {
+    "Authorization": "Bearer YOUR_API_KEY",
+    "Content-Type": "application/json",
+  },
+  body: JSON.stringify({
+    projectId: "YOUR_PROJECT_ID",
+    level: "ERROR",
+    message: "Payment failed: card declined",
+    source: "payments.processor",
+    timestamp: "2026-04-07T09:41:03Z",
+    tags: ["prod"],
+    meta: { userId: "usr_abc", amount: 4999 },
+  }),
+});
+const data = await res.json();
+// { ingested: 1, ids: ["log_…"] }
+```
+
+```python Python
+import requests
+
+res = requests.post(
+    "https://api.streamlogia.com/v1/ingest",
+    headers={"Authorization": "Bearer YOUR_API_KEY"},
+    json={
+        "projectId": "YOUR_PROJECT_ID",
+        "level": "ERROR",
+        "message": "Payment failed: card declined",
+        "source": "payments.processor",
+        "timestamp": "2026-04-07T09:41:03Z",
+        "tags": ["prod"],
+        "meta": {"userId": "usr_abc", "amount": 4999},
+    },
+)
+print(res.json())  # {'ingested': 1, 'ids': ['log_…']}
+```
+
+```go Go
+entry := LogEntry{
+    ProjectID: "YOUR_PROJECT_ID",
+    Level:     "ERROR",
+    Message:   "Payment failed: card declined",
+    Source:    "payments.processor",
+    Timestamp: "2026-04-07T09:41:03Z",
+}
+ingest("YOUR_API_KEY", entry)
+```
+
+</CodeGroup>
+
+---
+
+## Response
+
+```json
+{
+  "ingested": 2,
+  "ids": [
+    "log_7f3a1b9c-e4d2-4f8a-b3c1-9d0e2f6a5b78",
+    "log_2c8d4e6f-a1b3-5c7d-e9f0-1a2b3c4d5e6f"
+  ]
+}
+```
+
+<ResponseField name="ingested" type="integer">Number of entries stored.</ResponseField>
+<ResponseField name="ids" type="string[]">Stable UUIDs for each entry, in request order.</ResponseField>
+
+

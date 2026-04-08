@@ -1,0 +1,77 @@
+---
+title: Errors
+description: Error format and status codes returned by the Streamlogia API.
+---
+
+## Error format
+
+All errors return a JSON body with an `error` code and a `message`:
+
+```json
+{
+  "error": "invalid_body",
+  "message": "Field 'level' is required"
+}
+```
+
+---
+
+## Status codes
+
+| Status | Code | When |
+|--------|------|------|
+| `400` | `invalid_body` | Missing required field or malformed JSON |
+| `401` | `unauthorized` | `Authorization` header missing, key malformed, or revoked |
+| `403` | `forbidden` | Key does not have access to the requested resource |
+| `404` | `not_found` | Resource does not exist |
+| `422` | `invalid_level` | `level` is not one of `DEBUG`, `INFO`, `WARN`, `ERROR` |
+| `429` | `rate_limited` | Rate limit exceeded |
+| `500` | `server_error` | Unexpected server error — contact support if this persists |
+
+---
+
+## Handling errors
+
+<CodeGroup>
+
+```javascript Node.js
+const res = await fetch("https://api.streamlogia.com/v1/ingest", {
+  method: "POST",
+  headers: {
+    "Authorization": "Bearer YOUR_API_KEY",
+    "Content-Type": "application/json",
+  },
+  body: JSON.stringify(entry),
+});
+
+if (!res.ok) {
+  const error = await res.json();
+  if (res.status === 429) {
+    const wait = parseInt(res.headers.get("Retry-After") ?? "5", 10);
+    await new Promise((r) => setTimeout(r, wait * 1000));
+    // retry...
+    return;
+  }
+  throw new Error(`[${error.error}] ${error.message}`);
+}
+```
+
+```python Python
+import time, requests
+
+def ingest_with_retry(api_key, entry, retries=3):
+    for _ in range(retries):
+        res = requests.post(
+            "https://api.streamlogia.com/v1/ingest",
+            headers={"Authorization": f"Bearer {api_key}"},
+            json=entry,
+        )
+        if res.status_code == 429:
+            time.sleep(int(res.headers.get("Retry-After", 5)))
+            continue
+        res.raise_for_status()
+        return res.json()
+    raise RuntimeError("Max retries exceeded")
+```
+
+</CodeGroup>

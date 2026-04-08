@@ -1,0 +1,38 @@
+---
+title: Log Stats
+description: Get a count of log entries by level for a project.
+---
+
+<Note>Base URL: `https://api.streamlogia.com`</Note>
+
+**`GET /v1/projects/{projectId}/logs/stats`**
+
+**`Authorization: Bearer YOUR_API_KEY`**
+
+---
+
+## Path parameters
+
+<ParamField path="projectId" type="string" required>UUID of the project.</ParamField>
+
+---
+
+## Response
+
+```json
+{
+  "DEBUG": 12,
+  "INFO": 580,
+  "WARN": 34,
+  "ERROR": 7
+}
+```
+
+---
+
+## Example
+
+```bash
+curl https://api.streamlogia.com/v1/projects/YOUR_PROJECT_ID/logs/stats \
+  -H "Authorization: Bearer YOUR_API_KEY"
+```

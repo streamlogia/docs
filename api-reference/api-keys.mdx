@@ -1,0 +1,24 @@
+---
+title: API Keys
+description: JWT tokens that authenticate requests on behalf of your account.
+---
+
+API keys are signed **JWT tokens** that act on your behalf. They inherit your account permissions — if your account has access to a project, your API key has access to that project too.
+
+Every account has an API key already generated. You do not need to create one.
+
+---
+
+## Finding your key
+
+Click **API Keys** in the left sidebar. Your key is displayed there — click **Show** to reveal the full value or **Copy** to copy it directly.
+
+---
+
+## Using your key
+
+Pass it as a Bearer token on every request:
+
+**`Authorization: Bearer YOUR_API_KEY`**
+
+---

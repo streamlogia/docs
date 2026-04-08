@@ -1,0 +1,145 @@
+---
+title: cURL & HTTP
+description: Ingest logs from any language or tool using plain HTTP.
+---
+
+The ingest API is a plain JSON over HTTP endpoint. Any HTTP client works — no SDK required.
+
+---
+
+## Minimal request
+
+```bash
+curl -X POST https://api.streamlogia.com/v1/ingest \
+  -H "Authorization: Bearer YOUR_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "projectId": "YOUR_PROJECT_ID",
+    "level": "INFO",
+    "message": "Hello from cURL",
+    "source": "my-service"
+  }'
+```
+
+---
+
+## Full request with all fields
+
+```bash
+curl -X POST https://api.streamlogia.com/v1/ingest \
+  -H "Authorization: Bearer YOUR_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "projectId": "YOUR_PROJECT_ID",
+    "level": "ERROR",
+    "message": "Payment failed: card declined",
+    "source": "payments.processor",
+    "timestamp": "2026-04-07T09:41:03Z",
+    "tags": ["prod", "region:us-east"],
+    "meta": {
+      "orderId": 9921,
+      "userId": "usr_abc123",
+      "code": "card_declined"
+    }
+  }'
+```
+
+---
+
+## Batch (array of entries)
+
+```bash
+curl -X POST https://api.streamlogia.com/v1/ingest \
+  -H "Authorization: Bearer YOUR_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '[
+    {
+      "projectId": "YOUR_PROJECT_ID",
+      "level": "ERROR",
+      "message": "Unhandled exception in /v1/orders",
+      "source": "api.handler"
+    },
+    {
+      "projectId": "YOUR_PROJECT_ID",
+      "level": "WARN",
+      "message": "Connection pool at 90% capacity",
+      "source": "db.pool"
+    }
+  ]'
+```
+
+---
+
+## Shell script helper
+
+Drop this function into your shell scripts:
+
+```bash
+#!/usr/bin/env bash
+
+STREAMLOGIA_API_KEY="YOUR_API_KEY"
+STREAMLOGIA_PROJECT_ID="YOUR_PROJECT_ID"
+
+log() {
+  local level="$1"
+  local message="$2"
+  local source="${3:-shell}"
+
+  curl -s -o /dev/null -X POST https://api.streamlogia.com/v1/ingest \
+    -H "Authorization: Bearer $STREAMLOGIA_API_KEY" \
+    -H "Content-Type: application/json" \
+    -d "{\"projectId\":\"$STREAMLOGIA_PROJECT_ID\",\"level\":\"$level\",\"message\":\"$message\",\"source\":\"$source\"}"
+}
+
+log "INFO"  "Backup started"          "backup.sh"
+log "INFO"  "Backup completed"        "backup.sh"
+log "ERROR" "Backup failed: no space" "backup.sh"
+```
+
+---
+
+## HTTPie
+
+```bash
+http POST https://api.streamlogia.com/v1/ingest \
+  "Authorization: Bearer YOUR_API_KEY" \
+  projectId="YOUR_PROJECT_ID" \
+  level="WARN" \
+  message="Disk at 85%" \
+  source="monitor"
+```
+
+---
+
+## Checking the response
+
+```bash
+curl -s -X POST https://api.streamlogia.com/v1/ingest \
+  -H "Authorization: Bearer YOUR_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{"projectId":"YOUR_PROJECT_ID","level":"INFO","message":"test","source":"my-service"}' \
+  | jq .
+```
+
+```json
+{
+  "ingested": 1,
+  "ids": ["log_7f3a1b9c-e4d2-4f8a-b3c1-9d0e2f6a5b78"]
+}
+```
+
+---
+
+## Other languages (raw HTTP)
+
+Any language with an HTTP client can ingest logs. The pattern is always the same:
+
+| Step | Value |
+|------|-------|
+| Method | `POST` |
+| URL | `https://api.streamlogia.com/v1/ingest` |
+| Header | `Authorization: Bearer YOUR_API_KEY` |
+| Header | `Content-Type: application/json` |
+| Body | JSON object (or array of objects) per [Ingest reference](/api-reference/ingest) |
+
+See the full field reference on the [Ingest](/api-reference/ingest) page.
