@@ -40,36 +40,21 @@
       "pages": [
         {
           "group": "Ingest",
-          "pages": [
-            "api-reference/ingest",
-            "api-reference/stream"
-          ]
+          "pages": ["api-reference/ingest", "api-reference/stream"]
         },
         {
           "group": "Logs",
-          "pages": [
-            "api-reference/list-logs",
-            "api-reference/log-stats"
-          ]
+          "pages": ["api-reference/list-logs", "api-reference/log-stats"]
         },
         {
           "group": "Management",
-          "pages": [
-            "api-reference/organisations",
-            "api-reference/projects",
-            "api-reference/api-keys"
-          ]
+          "pages": ["api-reference/projects"]
         }
       ]
     },
     {
       "group": "SDKs",
-      "pages": [
-        "sdks/javascript",
-        "sdks/python",
-        "sdks/go",
-        "sdks/curl"
-      ]
+      "pages": ["sdks/javascript", "sdks/python", "sdks/go", "sdks/curl"]
     }
   ],
   "css": "/custom.css",
