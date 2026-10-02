@@ -32,7 +32,7 @@ const client = new LogIngestorClient({
 | `apiKey`         | required                         | Your Log Ingestor API key                      |
 | `projectId`      | required                         | UUID of the project to ingest into             |
 | `source`         | `"unknown"`                      | Default source tag applied to every entry      |
-| `baseURL`        | `"https://api.streamlogia.com"`  | Override the API base URL                      |
+| `baseURL`        | `STREAMLOGIA_API_URL` or hosted  | A self-hosted API                              |
 | `batchSize`      | `1`                              | Flush when the queue reaches this many entries |
 | `flushIntervalMs`| `5000`                           | Background flush interval in milliseconds      |
 | `console`        | `true`                           | Mirror logs to the console                     |
@@ -183,3 +183,11 @@ fetch("https://api.streamlogia.com/v1/ingest", {
   body: JSON.stringify([entry]),
 }).catch(() => {});
 ```
+
+---
+
+## Self-hosted installations
+
+Replace the base URL with your installation's API hostname and use an ingest
+key issued there. See [Self-hosted installations](/self-hosted) for the
+environment variables and private-CA notes.

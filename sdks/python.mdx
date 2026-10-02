@@ -26,7 +26,9 @@ client = LogIngestorClient(
 
 | Parameter        | Default          | Description                                              |
 | ---------------- | ---------------- | -------------------------------------------------------- |
-| `api_key`        | required         | Your Log Ingestor API key                                |
+| `api_key`        | required         | An ingest key from the API Keys page                     |
+| `base_url`       | hosted API       | A self-hosted API; also read from `STREAMLOGIA_API_URL`  |
+| `ca_file`        | system store     | A private CA bundle; also read from `STREAMLOGIA_CA_FILE` |
 | `project_id`     | required         | UUID of the project to ingest into                       |
 | `source`         | `"unknown"`      | Default source tag applied to every entry                |
 | `batch_size`     | `1`              | Flush the queue when it reaches this many entries        |
@@ -192,3 +194,11 @@ ingest([{
     "meta":      {},
 }])
 ```
+
+---
+
+## Self-hosted installations
+
+Replace the base URL with your installation's API hostname and use an ingest
+key issued there. See [Self-hosted installations](/self-hosted) for the
+environment variables and private-CA notes.

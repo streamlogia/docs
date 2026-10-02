@@ -32,6 +32,7 @@
         "introduction",
         "quickstart",
         "authentication",
+        "self-hosted",
         "api-reference/errors"
       ]
     },

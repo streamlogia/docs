@@ -43,7 +43,8 @@ Every entry is sent immediately — there is no internal buffer or background fl
 | Option                    | Default     | Description                               |
 | ------------------------- | ----------- | ----------------------------------------- |
 | `WithSource(s string)`    | `"unknown"` | Default `source` field on every log entry |
-| `WithHTTPClient(hc)`      | default     | Custom `*http.Client`                     |
+| `WithHTTPClient(hc)`      | default     | Custom `*http.Client` (private CA, proxy) |
+| `WithBaseURL(u string)`   | hosted API  | A self-hosted API; also read from `STREAMLOGIA_API_URL` |
 
 ---
 
@@ -207,3 +208,11 @@ func main() {
     }})
 }
 ```
+
+---
+
+## Self-hosted installations
+
+Replace the base URL with your installation's API hostname and use an ingest
+key issued there. See [Self-hosted installations](/self-hosted) for the
+environment variables and private-CA notes.

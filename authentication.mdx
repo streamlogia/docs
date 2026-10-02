@@ -1,22 +1,43 @@
 ---
 title: Authentication
-description: All requests are authenticated with an API key that inherits your account permissions.
+description: Programs authenticate with an API key; the dashboard uses your login session.
 ---
 
-## API keys
+## Two kinds of credential
 
-Pass your API key as a Bearer token on every request:
+Every request carries a bearer token:
 
-**`Authorization: Bearer YOUR_API_KEY`**
+**`Authorization: Bearer <credential>`**
 
-API keys are signed **JWT tokens** that inherit your account permissions. If your account has access to a project, your key has access to that project too.
+Which credential depends on who is calling.
 
-Every account has an API key already generated — no setup needed.
+| Credential | Prefix | Used by | Can |
+| --- | --- | --- | --- |
+| **Ingest key** | `ls_app_live_…` | SDKs, `curl`, any application shipping logs | `POST /v1/ingest` for its organisation (or one project) |
+| **Read-only key** | `ls_api_live_…` | Scripts and CI that query logs | `GET /v1/query/*` |
+| **Source key** | `ls_src_live_…` | Collectors and the Streamlogia agent | The bulk, OTLP and host-metrics ingest routes for one source |
+| **Session token** | a JWT | Your browser | Everything your account can do, until the session expires |
+
+Configure applications with an **ingest key**. A session token also works on
+`POST /v1/ingest`, which is convenient for trying the API by hand, but it
+expires with your session and carries every permission you have.
 
 ---
 
-## Finding your key
+## Creating an ingest key
 
-Click **API Keys** in the left sidebar. Your key is displayed there — click **Show** to reveal the full value or **Copy** to copy it directly.
+1. Open **API Keys** in the left sidebar (organisation admins).
+2. **New key**, type **Ingest**. Optionally pin it to one project, and give it
+   an expiry.
+3. Copy the key: it is shown exactly once.
+
+Put it in the SDK as `apiKey` / `api_key`, or in the `STREAMLOGIA_API_KEY`
+environment variable. Revoking the key on the same page stops it immediately.
 
 ---
+
+## Source keys
+
+A source key is created on the **Sources** page when you connect a host or a
+collector, and is what the agent installer asks for. It is bound to that source
+and is not interchangeable with an ingest key.

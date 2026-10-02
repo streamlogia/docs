@@ -9,9 +9,12 @@ Sign up at [streamlogia.com](https://streamlogia.com). On first login you will b
 
 Note the **Project ID** shown on the project page. You will need it in every ingest request.
 
-## 2. Get your API key
+## 2. Create an ingest key
 
-Click **API Keys** in the left sidebar. Your key is already available — click **Copy** or **Show** to reveal it.
+Click **API Keys** in the left sidebar, then **New key** with type **Ingest**.
+Copy it — it is shown once. This is the key your application ships logs with;
+it never expires with your login. (Running your own Streamlogia? See
+[Self-hosted installations](/self-hosted) for the base URL.)
 
 ## 3. Send your first log
 
@@ -62,8 +65,7 @@ import (
 )
 
 client := logingestor.New(
-    "https://api.streamlogia.com",
-    "YOUR_API_TOKEN",
+    "YOUR_API_KEY",
     "YOUR_PROJECT_ID",
     logingestor.WithSource("quickstart"),
 )

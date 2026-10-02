@@ -1,0 +1,53 @@
+---
+title: Self-hosted installations
+description: Pointing the SDKs, collectors and agent at a Streamlogia running on your own network.
+---
+
+Everything in these docs uses `https://api.streamlogia.com` as the base URL.
+A self-hosted installation has its own API hostname, and every client has to
+be told it once.
+
+## SDKs
+
+Set one environment variable where the application runs:
+
+```sh
+export STREAMLOGIA_API_URL=https://logs-api.corp.example
+export STREAMLOGIA_API_KEY=ls_app_live_…        # an ingest key from your installation's API Keys page
+export STREAMLOGIA_PROJECT_ID=…
+```
+
+All three SDKs read `STREAMLOGIA_API_URL`. In code it is `WithBaseURL(...)`
+in Go, `base_url=` in Python and `baseURL` in JavaScript; the code value wins
+over the environment.
+
+The key must come from **your** installation: a key from the hosted service
+is unknown to it, and a login token expires with the session.
+
+## Private certificate authority
+
+If your installation's certificate is issued by an internal CA:
+
+| Runtime | How to trust it |
+| --- | --- |
+| Go | Install the CA on the host (the system store is used), or pass an `*http.Client` through `WithHTTPClient` |
+| Python | `STREAMLOGIA_CA_FILE=/etc/ssl/corp-ca.pem`, or `ca_file=` |
+| Node.js | `NODE_EXTRA_CA_CERTS=/etc/ssl/corp-ca.pem` |
+| curl | `--cacert /etc/ssl/corp-ca.pem` |
+
+## Agent and collectors
+
+The agent installer is served from your installation's installer hostname and
+already points at your API:
+
+```sh
+curl -fsSL https://logs-get.corp.example/install.sh | sudo sh -s -- --key ls_src_live_…
+```
+
+Collector configurations shown on the **Sources** page use your API hostname
+automatically.
+
+## Status page
+
+`https://logs-api.corp.example/v1/status` is served by your installation and
+backs its own status page; it does not depend on the hosted service.
